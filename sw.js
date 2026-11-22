@@ -1,6 +1,6 @@
 // Keep in Touch service worker: makes the app open offline.
 // Bump CACHE when you change the app so phones pick up the new version.
-const CACHE = 'kit-shell-v2';
+const CACHE = 'kit-shell-v3';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {

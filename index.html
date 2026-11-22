@@ -105,6 +105,7 @@ h1,h2,h3,p{margin:0}
 .dialog{position:absolute;left:20px;right:20px;top:50%;transform:translateY(-50%);max-width:420px;margin:0 auto;background:var(--bg);border-radius:20px;padding:22px 20px 20px;display:flex;flex-direction:column;gap:16px}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 96px);max-width:440px;width:calc(100% - 40px);z-index:60;pointer-events:none}
 #toast div{background:var(--ink);color:#fff;border-radius:14px;padding:12px 16px;font-weight:500;font-size:14px;text-align:center}
+.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .more>summary{min-height:44px;display:flex;align-items:center;font-weight:600;cursor:pointer;color:var(--muted)}
 .notice{padding:12px 16px;border-radius:14px;background:#EFE7DA;color:#4A423A;font-size:14px;line-height:1.4}
 #syncnote:not(:empty){padding:calc(env(safe-area-inset-top) + 16px) 20px 0}
@@ -156,6 +157,7 @@ function initials(n){var p=String(n).trim().split(/\s+/).filter(Boolean);return 
 var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 var METHODS=['Text','Call','In person','Video','Other'];
 var RHYTHMS={
+  weekly:{days:7,label:'Weekly',every:'every week',hint:'every week'},
   often:{days:14,label:'Often',every:'every 2 weeks',hint:'about every 2 weeks'},
   regular:{days:42,label:'Regularly',every:'every 6 weeks',hint:'about every 6 weeks'},
   occasional:{days:90,label:'Occasionally',every:'every 3 months',hint:'every few months'}
@@ -512,7 +514,7 @@ function detailView(f){
     '<button class="seg" data-act="setEnergy" data-val="e" aria-pressed="'+(f.energy==='e')+'">'+IC.spark(18)+'Lights me up</button>'+
     '<button class="seg" data-act="setEnergy" data-val="k" aria-pressed="'+(f.energy==='k')+'">'+IC.leaf(18)+'Keeping the tie</button></div>'+
     '<p class="small">Only you see this. It shapes how Today nudges you.</p></section>';
-  h+='<section class="stack gap10"><h2 class="label">Rhythm</h2><div class="row gap10">'+Object.keys(RHYTHMS).map(function(k){return '<button class="seg r" data-act="setRhythm" data-val="'+k+'" aria-pressed="'+(f.rhythm===k)+'">'+RHYTHMS[k].label+'</button>'}).join('')+'</div><p class="small">Nudge me '+esc(RHYTHMS[f.rhythm].hint)+'.</p></section>';
+  h+='<section class="stack gap10"><h2 class="label">Rhythm</h2><div class="rgrid">'+Object.keys(RHYTHMS).map(function(k){return '<button class="seg r" data-act="setRhythm" data-val="'+k+'" aria-pressed="'+(f.rhythm===k)+'">'+RHYTHMS[k].label+'</button>'}).join('')+'</div><p class="small">Nudge me '+esc(RHYTHMS[f.rhythm].hint)+'.</p></section>';
   var nudgeBox='',fn=feelNudge(f);
   if(fn)nudgeBox='<div class="banner" style="background:#EFE7DA;color:#4A423A;flex-direction:column;gap:12px"><span>'+esc(fn.text)+'</span><div class="row gap8 wrap"><button class="btn small-btn" data-act="applyNudge">'+esc(fn.action)+'</button><button class="btn small-btn ghost" data-act="dismissNudge">Not now</button></div></div>';
   var nudge;
@@ -602,7 +604,7 @@ function openFriendSheet(id){
     '<div class="field" id="nm-one"><label for="fname">Name</label><input id="fname" class="input" type="text" maxlength="80" value="'+esc(f?f.name:'')+'" autocomplete="off"></div>'+
     '<div class="field" id="nm-many" hidden><label for="fnames">Names, one per line</label><textarea id="fnames" class="textarea" rows="5" placeholder="Maya Okafor&#10;Daniel Reyes&#10;Priya Nair"></textarea><span class="small">They’ll all get the settings below. You can change each one later.</span></div>'+
     '<div class="stack gap10"><span class="label">Reaching out feels like</span><div class="row gap10"><button type="button" class="seg" data-act="chip" data-group="energy" data-val="e" aria-pressed="'+(S.sheet.energy==='e')+'">'+IC.spark(18)+'Lights me up</button><button type="button" class="seg" data-act="chip" data-group="energy" data-val="k" aria-pressed="'+(S.sheet.energy==='k')+'">'+IC.leaf(18)+'Keeping the tie</button></div></div>'+
-    '<div class="stack gap10"><span class="label">Rhythm</span><div class="row gap10">'+Object.keys(RHYTHMS).map(function(k){return '<button type="button" class="seg r" data-act="chip" data-group="rhythm" data-val="'+k+'" aria-pressed="'+(S.sheet.rhythm===k)+'">'+RHYTHMS[k].label+'</button>'}).join('')+'</div><span class="small" id="rhint">Nudge me '+esc(RHYTHMS[S.sheet.rhythm].hint)+'.</span></div>'+
+    '<div class="stack gap10"><span class="label">Rhythm</span><div class="rgrid">'+Object.keys(RHYTHMS).map(function(k){return '<button type="button" class="seg r" data-act="chip" data-group="rhythm" data-val="'+k+'" aria-pressed="'+(S.sheet.rhythm===k)+'">'+RHYTHMS[k].label+'</button>'}).join('')+'</div><span class="small" id="rhint">Nudge me '+esc(RHYTHMS[S.sheet.rhythm].hint)+'.</span></div>'+
     (f?'':'<div class="stack gap10"><span class="label">When did you last talk?</span><div class="row gap10 wrap">'+chips('last',LAST_OPTS,'unsure')+'</div></div>')+
     '<div class="stack gap10"><span class="label">Tags (optional)</span><div class="stack gap10" id="tagwrap">'+tagGroup(S.sheet.tags)+'</div></div>'+
     '<div class="field" id="bdwrap"><span class="lab">Birthday (optional)</span><div class="row gap10"><select id="bm" class="select" aria-label="Birthday month">'+mOpts+'</select><select id="bd" class="select" aria-label="Birthday day">'+dOpts+'</select></div></div>'+
