@@ -241,7 +241,7 @@ function fuCard(x){
       '<div class="grow stack gap6"><span class="name">'+esc(f.name)+'</span>'+
       '<span style="font-size:14px;'+(fuOverdue(u.date)?'font-weight:600;color:var(--danger)':'color:var(--muted)')+'">'+esc(fuLabel(u.date))+'</span></div>'+
     '</button>'+
-    '<div class="card-ask"><span class="small" style="font-weight:600">Follow up</span><span style="overflow-wrap:anywhere">'+esc(u.text)+'</span></div>'+
+    '<div class="card-ask"><span class="small" style="font-weight:600">Reminder</span><span style="overflow-wrap:anywhere">'+esc(u.text)+'</span></div>'+
     '<div class="card-actions"><button class="btn" data-act="fuDone" data-id="'+esc(f.id)+'" data-fid="'+esc(u.id)+'">'+IC.check()+'Done</button></div></article>';
 }
 function all(){return Array.from(S.friends.values())}
@@ -441,7 +441,7 @@ function todayView(){
   var list=all(),t=todayStr();
   var items=list.map(function(f){return {f:f,s:status(f)}});
   var due=items.filter(function(x){return x.s.due}).sort(function(a,b){return b.s.ratio-a.s.ratio||a.f.createdAt-b.f.createdAt});
-  var h='<div class="stack gap6"><span class="eyebrow">'+esc(new Date().toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'}))+'</span><h1 class="h1">Who to reach out to</h1></div>';
+  var h='<div class="row gap12" style="justify-content:space-between;align-items:flex-end"><div class="stack gap6"><span class="eyebrow">'+esc(new Date().toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'}))+'</span><h1 class="h1">Who to reach out to</h1></div>'+(list.length?'<button class="btn small-btn" data-act="addReminder" style="flex-shrink:0">'+IC.plus(16)+'Reminder</button>':'')+'</div>';
   if(!list.length){
     return h+'<div class="empty"><h2 class="h2">Start with a few people</h2><p class="muted">Add the friends you want to stay in touch with. You can add several at once.</p><button class="btn primary" data-act="addFriend">'+IC.plus()+'Add friends</button></div>';
   }
@@ -456,7 +456,7 @@ function todayView(){
   }
   var fus=activeFollowups();
   if(fus.length){
-    h+='<section class="stack gap12"><h2 class="label">Follow up</h2>'+fus.map(fuCard).join('')+'</section>';
+    h+='<section class="stack gap12"><h2 class="label">Reminders</h2>'+fus.map(fuCard).join('')+'</section>';
   }
   if(due.length){
     var shown=S.showAll?due:due.slice(0,8);
@@ -525,10 +525,10 @@ function detailView(f){
   h+='<div class="statgrid"><div class="stat"><span class="k">Last talked</span><span class="v">'+(s.days==null?'—':esc(ago(s.days)))+'</span>'+(f.lastContact?'<span class="small">'+esc(niceDate(f.lastContact))+(f.history[0]&&f.history[0].date===f.lastContact?' · '+esc(f.history[0].method.toLowerCase()):'')+'</span>':'')+'</div>'+
     '<div class="stat"><span class="k">Status</span><span class="v">'+esc(nudge)+'</span>'+(s.snoozed?'<button class="textbtn" style="padding:0;min-height:32px;color:var(--ink)" data-act="unsnooze">Remind me now</button>':'')+'</div></div>';
   h+=nudgeBox;
-  h+='<section class="stack gap12"><div class="row" style="justify-content:space-between"><h2 class="h2">Follow-ups</h2><button class="btn small-btn" data-act="addFu" data-id="'+esc(f.id)+'">'+IC.plus(16)+'Add</button></div>'+
+  h+='<section class="stack gap12"><div class="row" style="justify-content:space-between"><h2 class="h2">Reminders</h2><button class="btn small-btn" data-act="addFu" data-id="'+esc(f.id)+'">'+IC.plus(16)+'Add</button></div>'+
     (f.followups.length?'<div class="stack gap8">'+f.followups.slice().sort(function(a,b){return (a.date||'9999')<(b.date||'9999')?-1:1}).map(function(u){
       return '<div class="pt" style="padding:8px 8px 8px 16px"><div class="grow stack" style="gap:2px"><span style="overflow-wrap:anywhere">'+esc(u.text)+'</span><span class="small" style="'+(fuOverdue(u.date)?'color:var(--danger);font-weight:600':'')+'">'+esc(fuLabel(u.date))+'</span></div><button class="btn small-btn" data-act="fuDone" data-id="'+esc(f.id)+'" data-fid="'+esc(u.id)+'" aria-label="Mark done: '+esc(u.text)+'">'+IC.check(16)+'Done</button></div>';
-    }).join('')+'</div>':'<p class="muted">Nothing to follow up on.</p>')+'</section>';
+    }).join('')+'</div>':'<p class="muted">No reminders.</p>')+'</section>';
   h+='<section class="stack gap12"><h2 class="h2">Ask about next time</h2><div class="stack gap8">'+
     f.asks.map(function(a){return '<div class="pt"><span class="dot"></span><span class="grow">'+esc(a.text)+'</span><button class="iconbtn" data-act="rmAsk" data-aid="'+esc(a.id)+'" aria-label="Remove: '+esc(a.text)+'">'+IC.x()+'</button></div>'}).join('')+
     '</div><div class="row gap8"><div class="grow"><label class="small" for="askin" style="font-weight:600;display:block;margin-bottom:6px">Add a talking point</label><input id="askin" class="input" type="text" maxlength="200" placeholder="e.g. How the trip went" autocomplete="off"></div><button class="btn" style="margin-top:26px" data-act="addAsk">Add</button></div></section>';
@@ -568,7 +568,7 @@ function openLog(id){
     '<details class="more"><summary>More options</summary><div class="stack gap20" style="padding-top:16px">'+
       '<div class="stack gap10"><span class="label">When?</span><div class="row gap10 wrap">'+chips('when',[['today','Today'],['yesterday','Yesterday'],['pick','Pick a date']],'today')+'</div>'+
       '<div id="pickwrap" hidden><label class="small" for="lgdate" style="font-weight:600">Date</label><input id="lgdate" class="input" type="date" max="'+t+'" value="'+t+'"></div></div>'+
-      '<div class="field"><label for="lgfu">Anything to follow up on?</label><input id="lgfu" class="input" type="text" maxlength="200" placeholder="e.g. Call back after the baby arrives" autocomplete="off"><select id="lgfuw" class="select" aria-label="When to remind me"><option value="none">No date</option><option value="1">Tomorrow</option><option value="7">In a week</option><option value="14">In two weeks</option><option value="30">In a month</option></select></div>'+
+      '<div class="field"><label for="lgfu">Anything to remind yourself about?</label><input id="lgfu" class="input" type="text" maxlength="200" placeholder="e.g. Call back after the baby arrives" autocomplete="off"><select id="lgfuw" class="select" aria-label="When to remind me"><option value="none">No date</option><option value="1">Tomorrow</option><option value="7">In a week</option><option value="14">In two weeks</option><option value="30">In a month</option></select></div>'+
     '</div></details>'+
     '<div class="stack gap10"><button class="btn primary block" data-act="saveLog" style="min-height:52px;font-size:16px;border-radius:16px">Save catch-up</button><button class="btn ghost block" data-act="closeSheet">Cancel</button></div></section>','[data-group=method]');
 }
@@ -633,27 +633,36 @@ function saveFriend(){
   closeSheet();render();
   toast(added?(added===1?'Added.':'Added '+added+' friends.'):'Those friends are already on your list.');
 }
+function nextWeekend(){var t=todayStr(),dow=parse(t).getDay();return (dow===6||dow===0)?t:addDays(t,6-dow)}
+var FU_QUICK=['Call back','Congratulate','Plan an outing','Send a message'];
 function openFuSheet(id){
-  var f=S.friends.get(id);if(!f)return;
-  S.sheet={type:'fu',id:id,fwhen:'none'};
+  var f=id?S.friends.get(id):null;
+  if(id&&!f)return;
+  if(!id&&!all().length)return;
+  S.sheet={type:'fu',id:id||null,fwhen:'none'};
   var t=todayStr();
+  var friendField=f?'':'<div class="field"><label for="fufriend">Who is it about?</label><select id="fufriend" class="select">'+all().sort(function(a,b){return a.name.localeCompare(b.name)}).map(function(x){return '<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>'}).join('')+'</select></div>';
   openSheet('<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="shtitle"><div class="grab"></div>'+
-    '<div class="stack gap6"><span class="eyebrow">For '+esc(f.name)+'</span><h2 class="h1" id="shtitle" style="font-size:28px">Add a follow-up</h2></div>'+
-    '<div class="field"><label for="futext">What do you need to follow up on?</label><input id="futext" class="input" type="text" maxlength="200" placeholder="e.g. Call back about the new baby" autocomplete="off"></div>'+
-    '<div class="stack gap10"><span class="label">Remind me</span><div class="row gap10 wrap">'+chips('fwhen',[['none','No date'],['today','Today'],['tomorrow','Tomorrow'],['week','In a week'],['pick','Pick a date']],'none')+'</div>'+
-    '<div id="fupick" hidden><label class="small" for="fudate" style="font-weight:600">Date</label><input id="fudate" class="input" type="date" min="'+t+'" value="'+addDays(t,1)+'"></div></div>'+
-    '<div class="stack gap10"><button class="btn primary block" data-act="saveFu" style="min-height:52px;font-size:16px;border-radius:16px">Save follow-up</button><button class="btn ghost block" data-act="closeSheet">Cancel</button></div></section>','#futext');
+    '<div class="stack gap6">'+(f?'<span class="eyebrow">For '+esc(f.name)+'</span>':'')+'<h2 class="h1" id="shtitle" style="font-size:28px">Add a reminder</h2></div>'+
+    friendField+
+    '<div class="stack gap10"><span class="label">Quick start</span><div class="row gap10 wrap">'+FU_QUICK.map(function(q){return '<button type="button" class="chip" data-act="fuQuick" data-val="'+esc(q)+'">'+esc(q)+'</button>'}).join('')+'</div></div>'+
+    '<div class="field"><label for="futext">What do you want to remember?</label><input id="futext" class="input" type="text" maxlength="200" placeholder="e.g. Call back about the missed call" autocomplete="off"></div>'+
+    '<div class="stack gap10"><span class="label">Remind me</span><div class="row gap10 wrap">'+chips('fwhen',[['none','No date'],['today','Today'],['tomorrow','Tomorrow'],['weekend','This weekend'],['week','In a week'],['pick','Pick a date']],'none')+'</div>'+
+    '<div id="fupick" hidden><label class="small" for="fudate" style="font-weight:600">Date</label><input id="fudate" class="input" type="date" min="'+t+'" value="'+addDays(t,1)+'"></div>'+
+    '<span class="small">It stays on your Today list until you tap Done. With a date, it waits until that day.</span></div>'+
+    '<div class="stack gap10"><button class="btn primary block" data-act="saveFu" style="min-height:52px;font-size:16px;border-radius:16px">Save reminder</button><button class="btn ghost block" data-act="closeSheet">Cancel</button></div></section>',f?'#futext':'#fufriend');
 }
 function saveFu(){
   var sh=S.sheet;if(!sh||sh.type!=='fu')return;
-  var f=S.friends.get(sh.id);if(!f)return;
+  var fid=sh.id||($('#fufriend')||{}).value;
+  var f=S.friends.get(fid);if(!f)return;
   var text=$('#futext').value.trim();if(!text){$('#futext').focus();toast('Please add a note.');return}
   var t=todayStr(),w=sh.fwhen;
-  var date=w==='none'?null:w==='today'?t:w==='tomorrow'?addDays(t,1):w==='week'?addDays(t,7):($('#fudate').value||t);
+  var date=w==='none'?null:w==='today'?t:w==='tomorrow'?addDays(t,1):w==='weekend'?nextWeekend():w==='week'?addDays(t,7):($('#fudate').value||t);
   if(date&&date<t)date=t;
   var nf=Object.assign({},f,{followups:f.followups.concat([{id:uid(),text:text,date:date,createdAt:Date.now()}])});
   closeSheet();persist(nf);render();
-  toast('Follow-up saved.');
+  toast('Reminder saved.');
 }
 function openConfirm(id){
   var f=S.friends.get(id);if(!f)return;
@@ -721,6 +730,8 @@ var A={
   doDelete:function(){var sh=S.sheet;if(!sh)return;var id=sh.id;closeSheet();S.detailId=null;removeRemote(id);render();toast('Removed.')},
   closeSheet:function(){closeSheet()},
   addFu:function(el){openFuSheet(el.dataset.id)},
+  addReminder:function(){openFuSheet(null)},
+  fuQuick:function(el){var i=$('#futext');if(!i)return;i.value=el.dataset.val+' ';i.focus();try{i.setSelectionRange(i.value.length,i.value.length)}catch(e){}},
   fuDone:function(el){var f=S.friends.get(el.dataset.id);if(!f)return;persist(Object.assign({},f,{followups:f.followups.filter(function(u){return u.id!==el.dataset.fid})}));render();toast('Done.')},
   saveFu:saveFu,
   saveLog:saveLog,
